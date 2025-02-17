@@ -1,0 +1,43 @@
+﻿@page "/edit-product/{id:int}"
+@inject Inventory.Services.ProductService ProductService
+@inject NavigationManager NavigationManager
+@using Inventory.Data
+@using Inventory.Models
+
+<h3>Edit Product</h3>
+
+<label for="productName">Name:</label>
+<input type="text" id="productName" @bind="product.Name" />
+
+<label for="productQuantity">Quantity:</label>
+<input type="number" id="productQuantity" @bind="product.Quantity" />
+
+<label for="productPrice">Price:</label>
+<input type="number" id="productPrice" @bind="product.Price" />
+
+<button @onclick="EditProduct">Save Changes</button>
+<button @onclick="CancelEditProduct">Cancel</button>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Product product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductById(Id);
+    }
+
+    private async Task EditProduct()
+    {
+        if (product != null)
+        {
+            await ProductService.UpdateProduct(product);
+            NavigationManager.NavigateTo("/products"); // Navigate back to the products list
+        }
+    }
+
+    private void CancelEditProduct()
+    {
+        NavigationManager.NavigateTo("/products"); // Navigate back to the products list if cancelled
+    }
+}

@@ -1,0 +1,36 @@
+﻿@page "/delete-product/{id:int}"
+@inject Inventory.Services.ProductService ProductService
+@inject NavigationManager NavigationManager
+@using Inventory.Data
+@using Inventory.Models
+
+<h3>Delete Product</h3>
+
+<p>Are you sure you want to delete the product: <strong>@product?.Name</strong>?</p>
+
+<button @onclick="DeleteProduct">Delete</button>
+<button @onclick="CancelDeleteProduct">Cancel</button>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Product product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductById(Id);
+    }
+
+    private async Task DeleteProduct()
+    {
+        if (product != null)
+        {
+            await ProductService.DeleteProduct(Id);
+            NavigationManager.NavigateTo("/products"); // Navigate back to the products list after deletion
+        }
+    }
+
+    private void CancelDeleteProduct()
+    {
+        NavigationManager.NavigateTo("/products"); // Navigate back to the products list if cancelled
+    }
+}

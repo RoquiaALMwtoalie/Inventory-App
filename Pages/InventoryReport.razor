@@ -1,0 +1,231 @@
+﻿@page "/inventory-report"
+@inject Inventory.Services.ProductService ProductService
+@using Inventory.Models
+@inject IJSRuntime JSRuntime
+@using OfficeOpenXml
+<h3 class="page-title">Inventory Report</h3>
+
+<!-- فاصل بين العنوان وزر التصدير -->
+<hr class="section-divider">
+
+<!-- زر تصدير التقارير مع مسافة من العنوان -->
+<div class="export-container">
+    <button class="btn btn-success" @onclick="GenerateAndDownloadExcelReport">Export to Excel</button>
+</div>
+
+<!-- مسافة بين زر التصدير والجدول -->
+<div class="table-container">
+    @if (filteredProducts == null)
+    {
+        <p>Loading data...</p>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                        <label for="productNameFilter">Product Name:</label>
+                        <div class="filter-container">
+                            <input type="text" id="productNameFilter" @bind="productNameFilter" class="filter-input" @onkeydown="HandleKeyDown" />
+                            <button class="search-btn" @onclick="ApplyFilters">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <label for="minQuantityFilter">Min Quantity:</label>
+                        <div class="filter-container">
+                            <input type="number" id="minQuantityFilter" @bind="minQuantityFilter" class="filter-input" @onkeydown="HandleKeyDown" />
+                            <button class="search-btn" @onclick="ApplyFilters">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </th>
+
+                    <!-- فلتر السعر فقط بتنسيق مشابه لبقية الفلاتر -->
+                    <th>
+                        <label for="priceFilter">Price:</label>
+                        <div class="filter-container">
+                            <input type="number" id="priceFilter" @bind="priceFilter" class="filter-input" placeholder="Price" @onkeydown="HandleKeyDown" />
+                            <button class="search-btn" @onclick="ApplyFilters">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th>Product</th>
+                    <th>Available Quantity</th>
+                    <th>Price</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var product in filteredProducts)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.Quantity</td>
+                        <td>@product.Price</td>
+                        <td>@(@product.Quantity * @product.Price)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (!filteredProducts.Any())
+        {
+            <p>No products found matching the filter criteria.</p>
+        }
+    }
+</div>
+
+@code {
+    private List<Product> products;
+    private List<Product> filteredProducts;
+
+    private string productNameFilter;
+    private decimal? priceFilter;  // فلتر السعر فقط
+    private int? minQuantityFilter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetInventoryReportAsync();
+        filteredProducts = products;
+    }
+
+    private void ApplyFilters()
+    {
+        filteredProducts = products
+            .Where(p => (string.IsNullOrEmpty(productNameFilter) || p.Name.Contains(productNameFilter, StringComparison.OrdinalIgnoreCase)) &&
+                        (!priceFilter.HasValue || p.Price == priceFilter.Value) &&  // تطبيق فلتر السعر فقط
+                        (!minQuantityFilter.HasValue || p.Quantity >= minQuantityFilter.Value))
+            .ToList();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplyFilters();
+        }
+    }
+
+    private async Task GenerateAndDownloadExcelReport()
+    {
+        using (var package = new ExcelPackage())
+        {
+            var worksheet = package.Workbook.Worksheets.Add("Inventory Report");
+
+            worksheet.Cells[1, 1].Value = "Name";
+            worksheet.Cells[1, 2].Value = "Quantity";
+            worksheet.Cells[1, 3].Value = "Price";
+            worksheet.Cells[1, 4].Value = "Total Price";
+
+            for (int i = 0; i < filteredProducts.Count; i++)
+            {
+                worksheet.Cells[i + 2, 1].Value = filteredProducts[i].Name;
+                worksheet.Cells[i + 2, 2].Value = filteredProducts[i].Quantity;
+                worksheet.Cells[i + 2, 3].Value = filteredProducts[i].Price;
+                worksheet.Cells[i + 2, 4].Value = filteredProducts[i].Quantity * filteredProducts[i].Price;
+            }
+
+            worksheet.Column(1).AutoFit();
+            worksheet.Column(2).AutoFit();
+            worksheet.Column(3).AutoFit();
+            worksheet.Column(4).AutoFit();
+
+            var fileBytes = package.GetAsByteArray();
+            var fileName = "InventoryReport.xlsx";
+            await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, fileBytes);
+        }
+    }
+}
+
+<style>
+    /* تنسيق العنوان */
+    .page-title {
+        font-size: 32px;
+        font-weight: 600;
+        text-align: left;
+        color: #34495e;
+        margin-bottom: 25px;
+        text-transform: capitalize;
+        letter-spacing: 1px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        border-bottom: 2px solid #5C6BC0;
+        padding-bottom: 5px;
+    }
+
+    /* فاصل بين العنوان وزر التصدير */
+    .section-divider {
+        border-top: 1px solid #ccc;
+        margin: 15px 0;
+    }
+
+    /* مسافة بين زر التصدير والجدول */
+    .export-container {
+        margin-bottom: 20px;
+    }
+
+    /* تنسيق الفلتر */
+    .filter-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .filter-input {
+        width: 90px;
+        padding: 6px;
+        height: 30px;
+        box-sizing: border-box;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+    .search-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        padding: 8px;
+        color: #007bff;
+        font-size: 18px;
+        height: 35px;
+        width: 35px;
+    }
+
+        .search-btn i {
+            font-size: 20px;
+        }
+
+    .btn-success {
+        background-color: #5C6BC0 !important;
+        border-color: #5C6BC0 !important;
+        color: white !important;
+    }
+
+        .btn-success:hover {
+            background-color: #4f5b94 !important;
+            border-color: #4f5b94 !important;
+        }
+
+    .table-bordered {
+        border: 2px solid #333;
+    }
+
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #333;
+        }
+</style>
+

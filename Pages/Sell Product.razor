@@ -1,0 +1,90 @@
+﻿@page "/sell-product/{id:int}"
+@inject Inventory.Services.ProductService ProductService
+@inject NavigationManager NavigationManager
+@using Inventory.Models
+
+<h3>Sell Product</h3>
+
+<p>Product: <strong>@product?.Name</strong></p>
+<p>Available Quantity: <strong>@product?.Quantity</strong></p>
+<p>Price: <strong>@product?.Price</strong></p>
+
+<!-- عرض السعر الإجمالي بناءً على الكمية المتاحة والسعر -->
+<p>Total Price: <strong>@totalPrice</strong></p>
+
+<label for="quantity">Quantity:</label>
+<input type="number" id="quantity" @bind="quantity" min="0" max="@product?.Quantity" />
+
+<button @onclick="SellProduct">Sell</button>
+<button @onclick="CancelSellProduct">Cancel</button>
+
+@if (errorMessage != null)
+{
+    <div style="color: red; margin-top: 10px;">@errorMessage</div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Product product;
+    private int _quantity = 0; // الكمية تبدأ من 0
+    private string errorMessage;
+    private decimal totalPrice;
+
+    private int quantity
+    {
+        get => _quantity;
+        set
+        {
+            _quantity = value;
+            if (_quantity < 0) _quantity = 0; // التأكد أن الكمية لا تكون أقل من 0
+            if (_quantity > (product?.Quantity ?? 0)) _quantity = product?.Quantity ?? 0; // التأكد أن الكمية لا تتجاوز الكمية المتاحة
+            StateHasChanged(); // إعادة تحديث الواجهة
+        }
+    }
+
+    private void CalculateTotalPrice()
+    {
+        // حساب السعر الإجمالي بناءً على الكمية المتاحة والسعر
+        totalPrice = (product?.Quantity ?? 0) * (product?.Price ?? 0);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductById(Id);
+
+        if (product == null)
+        {
+            errorMessage = "Product not found!";
+        }
+        else
+        {
+            CalculateTotalPrice(); // حساب السعر الإجمالي عند تحميل المنتج
+            StateHasChanged(); // تحديث الواجهة
+        }
+    }
+
+    private async Task SellProduct()
+    {
+        if (quantity > 0 && quantity <= product.Quantity)
+        {
+            try
+            {
+                await ProductService.SellProduct(Id, quantity);
+                NavigationManager.NavigateTo("/products");
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error during sale: {ex.Message}";
+            }
+        }
+        else
+        {
+            errorMessage = "Invalid quantity or not enough stock.";
+        }
+    }
+
+    private void CancelSellProduct()
+    {
+        NavigationManager.NavigateTo("/products");
+    }
+}

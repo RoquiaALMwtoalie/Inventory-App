@@ -1,0 +1,19 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <ErrorBoundary>
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        </ErrorBoundary>
+    </Found>
+
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+
+    <Navigating>
+        <!-- يمكنك إضافة محتوى أثناء التنقل -->
+        <p>Loading...</p>
+    </Navigating>
+</Router>

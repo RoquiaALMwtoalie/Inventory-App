@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\hp\Desktop\Publish\Publish</_PublishTargetUrl>
+    <History>True|2025-02-17T07:35:31.3882208Z||;False|2025-02-17T10:22:45.4685093+03:00||;True|2025-02-17T10:20:28.3403753+03:00||;True|2025-02-17T10:20:06.9766877+03:00||;True|2025-02-17T10:10:10.4886776+03:00||;False|2025-02-17T10:09:31.1105743+03:00||;True|2025-02-17T10:01:37.5887433+03:00||;True|2025-02-17T09:53:06.1792794+03:00||;True|2025-02-17T09:50:03.5005010+03:00||;True|2025-02-17T09:33:05.1655119+03:00||;True|2025-02-17T09:28:59.1500418+03:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

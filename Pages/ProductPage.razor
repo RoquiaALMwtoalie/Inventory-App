@@ -1,0 +1,203 @@
+﻿@page "/products"
+@inject Inventory.Services.ProductService ProductService
+@inject NavigationManager NavigationManager
+@using Inventory.Data
+@using Inventory.Models
+@using OfficeOpenXml
+@using System.IO
+@inject IJSRuntime JSRuntime
+
+<!-- العنوان -->
+<h3 class="page-title">Product Management</h3>
+
+<!-- زر Add New Product وزر View Inventory Report جنب بعض -->
+<div class="button-container">
+    <button class="btn btn-primary" @onclick="GoToAddProductPage">Add New Product</button>
+    <button class="btn btn-success" @onclick="GoToInventoryReportPage">View Inventory Report</button>
+
+</div>
+
+<!-- الجدول -->
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in products)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Quantity</td>
+                <td>@product.Price</td>
+                <td>@(product.Quantity * product.Price)</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning btn-sm" @onclick="() => GoToEditProductPage(product.Id)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => GoToDeleteProductPage(product.Id)">Delete</button>
+                        <button class="btn btn-info btn-sm" @onclick="() => GoToSellProductPage(product.Id)">Sell</button>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Product> products = new List<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProducts();
+    }
+
+    private Task GoToAddProductPage()
+    {
+        NavigationManager.NavigateTo("/add-product");
+        return Task.CompletedTask;
+    }
+
+    private Task GoToEditProductPage(int id)
+    {
+        NavigationManager.NavigateTo($"/edit-product/{id}");
+        return Task.CompletedTask;
+    }
+
+    private Task GoToDeleteProductPage(int id)
+    {
+        NavigationManager.NavigateTo($"/delete-product/{id}");
+        return Task.CompletedTask;
+    }
+
+    private Task GoToSellProductPage(int id)
+    {
+        NavigationManager.NavigateTo($"/sell-product/{id}");
+        return Task.CompletedTask;
+    }
+
+    private Task GoToInventoryReportPage()
+    {
+        NavigationManager.NavigateTo("/inventory-report");
+        return Task.CompletedTask;
+    }
+
+    
+}
+
+<style>
+    /* تصميم العنوان */
+    .page-title {
+        font-size: 32px;
+        font-weight: 600;
+        text-align: left;
+        color: #34495e;
+        margin-bottom: 25px;
+        text-transform: capitalize;
+        letter-spacing: 1px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        border-bottom: 2px solid #5C6BC0;
+        padding-bottom: 5px;
+    }
+
+    /* زر Add New Product وزر View Inventory Report جنب بعض */
+    .button-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+        .button-container button {
+            background-color: #5C6BC0;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+            .button-container button:hover {
+                background-color: #3f51b5;
+                transform: translateY(-2px);
+            }
+
+            .button-container button:focus {
+                outline: none;
+                box-shadow: 0 0 5px rgba(92, 107, 192, 0.7);
+            }
+
+    /* تصميم الجدول */
+    /* تصميم الجدول */
+    /* تصميم الجدول */
+    /* تصميم الجدول */
+    /* تصميم الجدول */
+    /* تصميم الجدول */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        border: 2px solid #000; /* تحديد حدود الجدول باللون الأسود الغامق */
+    }
+
+    /* تصميم رأس الجدول */
+    th {
+        background-color: #37474F;
+        color: #5C6BC0;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 18px;
+        border: 2px solid #000 !important; /* تحديد حدود الرأس بالأسود */
+    }
+
+    /* تصميم الخلايا */
+    td {
+        padding: 12px;
+        text-align: left;
+        border: 2px solid #000 !important; /* تحديد حدود الخلايا بالأسود */
+    }
+
+    /* تأثير التمرير على الصفوف */
+    tr:hover {
+        background-color: #F5F5F5;
+    }
+
+    /* إضافة الحدود بين الصفوف */
+    tr:not(:last-child) {
+        border-bottom: 2px solid #000 !important; /* إضافة حدود قوية بين الصفوف بالأسود */
+    }
+
+    /* تصميم الأزرار داخل الجدول */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+        .action-buttons button {
+            background-color: #5C6BC0;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+            .action-buttons button:hover {
+                background-color: #3f51b5;
+            }
+
+            .action-buttons button:focus {
+                outline: none;
+                box-shadow: 0 0 5px rgba(92, 107, 192, 0.7);
+            }
+
+
+</style>
